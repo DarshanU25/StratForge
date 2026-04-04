@@ -32,6 +32,14 @@ if SUPABASE_URL and SUPABASE_KEY:
         # Native premium CSS styling dynamically hooking the physical Streamlit login forms structurally
         st.markdown("""
         <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 15, 15, 0.9); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(45deg, #00cc6a, #00ff88); }
         @keyframes fadeUpLogin {
             0% { opacity: 0; transform: translateY(40px) scale(0.95); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -61,6 +69,7 @@ if SUPABASE_URL and SUPABASE_KEY:
         auth_ui.markdown('<div class="auth-container">', unsafe_allow_html=True)
         
         with auth_ui:
+            st.image(os.path.join(os.path.dirname(__file__), "Stratforge_logo.png"), use_column_width=True)
             st.markdown('<h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 0;">🔐 StratForge</h1>', unsafe_allow_html=True)
             st.markdown('<p style="text-align: center; color: #aaa; margin-bottom: 20px;">AI-Driven Quantitative Backtesting</p>', unsafe_allow_html=True)
             
