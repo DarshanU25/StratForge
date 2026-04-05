@@ -61,7 +61,7 @@ if SUPABASE_URL and SUPABASE_KEY:
         
         with auth_ui:
             import base64
-            logo_path = os.path.join(os.path.dirname(__file__), 'Stratforge_logo.png')
+            logo_path = os.path.join(os.path.dirname(__file__), 'assets', 'Stratforge_logo.png')
             try:
                 with open(logo_path, "rb") as img_f:
                     logo_b64 = base64.b64encode(img_f.read()).decode()
@@ -95,7 +95,7 @@ if SUPABASE_URL and SUPABASE_KEY:
                         
             with t_register:
                 email_r = st.text_input("Register New Email", key="reg_e")
-                mobile_r = st.text_input("Mobile Number (incl. Country Code)", placeholder="+1 (999) 000-0000", key="reg_m")
+                mobile_r = st.text_input("Mobile Number (incl. Country Code)", placeholder="+91 9200000046", key="reg_m")
                 pass_r = st.text_input("Create Password", type="password", key="reg_p")
                 if st.button("Register Account ➔", use_container_width=True):
                     if email_r and mobile_r and pass_r:
@@ -159,7 +159,7 @@ with header_container:
 import base64
 panel_bg_str = ""
 try:
-    panel_path = os.path.join(os.path.dirname(__file__), "dashboard_panel.png")
+    panel_path = os.path.join(os.path.dirname(__file__), "assets", "dashboard_panel.png")
     with open(panel_path, "rb") as pf:
         panel_bg_str = base64.b64encode(pf.read()).decode()
 except Exception:
