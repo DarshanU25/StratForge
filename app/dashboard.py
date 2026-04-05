@@ -32,14 +32,6 @@ if SUPABASE_URL and SUPABASE_KEY:
         # Native premium CSS styling dynamically hooking the physical Streamlit login forms structurally
         st.markdown("""
         <style>
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 15, 15, 0.9); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #00ff88, #00cc6a);
-            border-radius: 10px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-        }
-        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(45deg, #00cc6a, #00ff88); }
         @keyframes fadeUpLogin {
             0% { opacity: 0; transform: translateY(40px) scale(0.95); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -66,12 +58,16 @@ if SUPABASE_URL and SUPABASE_KEY:
         
         # Deploy structural injection isolating form parameters natively over everything
         auth_ui = st.container()
-        auth_ui.markdown('<div class="auth-container">', unsafe_allow_html=True)
         
         with auth_ui:
-            st.image(os.path.join(os.path.dirname(__file__), "Stratforge_logo.png"), use_column_width=True)
-            st.markdown('<h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 0;">🔐 StratForge</h1>', unsafe_allow_html=True)
-            st.markdown('<p style="text-align: center; color: #aaa; margin-bottom: 20px;">AI-Driven Quantitative Backtesting</p>', unsafe_allow_html=True)
+            import base64
+            logo_path = os.path.join(os.path.dirname(__file__), 'Stratforge_logo.png')
+            try:
+                with open(logo_path, "rb") as img_f:
+                    logo_b64 = base64.b64encode(img_f.read()).decode()
+                st.markdown(f'<div style="text-align: center; margin-bottom: 20px; margin-top: 10px;"><img src="data:image/png;base64,{logo_b64}" width="200" style="border-radius: 20px; box-shadow: 0 4px 20px rgba(0,255,136,0.2); position: relative; z-index: 10;"></div>', unsafe_allow_html=True)
+            except Exception:
+                pass
             
             t_login, t_register = st.tabs(["Login", "Register"])
             
@@ -125,7 +121,7 @@ if SUPABASE_URL and SUPABASE_KEY:
                     else:
                         st.warning("Please provide all specific credentials natively.")
                         
-        auth_ui.markdown('</div>', unsafe_allow_html=True)
+        # End of auth_ui block
         
         # Inject JavaScript dynamically assigning wrapper class explicitly since st.container natively ignores params
         import streamlit.components.v1 as components
@@ -144,21 +140,123 @@ if SUPABASE_URL and SUPABASE_KEY:
         st.stop()
 
 # Build Header structurally natively splitting cleanly across 
-c_header, c_profile = st.columns([5, 1])
-with c_header:
-    st.title("📈 Advanced Analytics Dashboard")
-with c_profile:
-    st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander(f"👤 {st.session_state.get('user_email', 'Guest')}"):
-        st.markdown(f"**Mobile:** {st.session_state.get('user_mobile', 'N/A')}")
-        st.markdown("**Status:** Verified")
-        if st.button("Logout 🚪", type="secondary", use_container_width=True):
-            st.session_state.authenticated = False
-            st.rerun()
+header_container = st.container()
+
+with header_container:
+    st.markdown('<span id="header-hook"></span>', unsafe_allow_html=True)
+    c_header, c_profile = st.columns([5, 1])
+    with c_header:
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    with c_profile:
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.expander(f"👤 {st.session_state.get('user_email', 'Guest')}"):
+            st.markdown(f"**Mobile:** {st.session_state.get('user_mobile', 'N/A')}")
+            st.markdown("**Status:** Verified")
+            if st.button("Logout 🚪", type="secondary", use_container_width=True):
+                st.session_state.authenticated = False
+                st.rerun()
+
+import base64
+panel_bg_str = ""
+try:
+    panel_path = os.path.join(os.path.dirname(__file__), "dashboard_panel.png")
+    with open(panel_path, "rb") as pf:
+        panel_bg_str = base64.b64encode(pf.read()).decode()
+except Exception:
+    pass
+
+if panel_bg_str:
+    st.markdown(f"""
+    <style>
+    .custom-header-panel {{
+        background-image: url("data:image/png;base64,{panel_bg_str}");
+        background-size: cover;
+        background-position: center;
+        border-radius: 16px;
+        padding: 20px 30px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        color: white;
+        aspect-ratio: 4.5 / 1;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+    .custom-header-panel h1 {{
+        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    }}
+    /* Natively fix inactive elements from inheriting transparent/red thematic backgrounds */
+    .custom-header-panel div[data-testid="stRadio"] label,
+    div.row-widget.stRadio label,
+    div[data-testid="stSegmentedControl"] label,
+    div[data-testid="stExpander"] details {{
+        background-color: #000000 !important;
+        background: #000000 !important;
+        opacity: 1 !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(0, 255, 136, 0.4) !important;
+    }}
+    
+    div.row-widget.stRadio div[role="radiogroup"],
+    div[data-testid="stSegmentedControl"] [data-baseweb="segmented-control"] {{
+        background: transparent !important;
+        border: none !important;
+    }}
+
+    div.row-widget.stRadio label * ,
+    div[data-testid="stSegmentedControl"] label * {{
+        color: #ffffff !important;
+        font-weight: bold !important;
+        background-color: transparent !important;
+        opacity: 1 !important;
+    }}
+    
+    /* Specific Active Element Highlights */
+    div.row-widget.stRadio label:has(input:checked),
+    div[data-testid="stSegmentedControl"] label[data-checked="true"],
+    div[data-testid="stSegmentedControl"] input:checked + div {{
+        background: rgba(0, 255, 136, 0.2) !important;
+        border: 1px solid #00ff88 !important;
+    }}
+        background-color: rgba(0, 255, 136, 0.2) !important;
+    }}
+    /* Responsive High-Resolution Typography */
+    @media (min-width: 1024px) {{
+        .custom-header-panel [data-testid="stSegmentedControl"],
+        .custom-header-panel [data-testid="stRadio"] > div {{
+            padding: 12px;
+        }}
+        .custom-header-panel [data-testid="stSegmentedControl"] p,
+        .custom-header-panel [data-testid="stRadio"] p {{
+            font-size: 20px !important;
+            letter-spacing: 0.5px;
+        }}
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    import streamlit.components.v1 as components
+    components.html("""<script>
+        setTimeout(() => {
+            const hook = window.parent.document.getElementById('header-hook');
+            if (hook) {
+                let container = hook.closest('div[data-testid="stVerticalBlock"]');
+                if (container) {
+                    container.classList.add('custom-header-panel');
+                }
+            }
+        }, 100);
+    </script>""", height=0)
 
 # Global CSS for responsive scaling cleanly across ANY display
 st.markdown("""
 <style>
+/* Custom Advanced Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(15, 15, 15, 0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0, 255, 136, 0.4); border-radius: 4px; transition: background 0.3s; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 136, 0.8); }
+
 /* Universal Fluidity */
 div.block-container { padding: 1rem 1rem !important; max-width: 1600px !important; width: 100% !important; }
 
@@ -436,6 +534,14 @@ if disable_all:
         st.rerun()
     st.divider()
     
+st.markdown("""
+<style>
+    /* Cut the Streamlit native layout gap in half for the Nav Bar */
+    div.row-widget.stRadio, div[data-testid="stSegmentedControl"] {
+        margin-top: -25px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 # --- Header Menu (Nav Bar) ---
 if "strategy_mode_key" not in st.session_state:
     st.session_state.strategy_mode_key = "Pre-built Strategies"
@@ -461,7 +567,6 @@ except AttributeError:
         # Fallback to horizontal radio
         st.markdown("<style>div.row-widget.stRadio > div{flex-direction:row;justify-content:center;background:#f0f2f6;padding:10px;border-radius:10px;}</style>", unsafe_allow_html=True)
         strategy_mode = st.radio("Navigation", ["Pre-built Strategies", "Custom Strategy Builder"], horizontal=True, label_visibility="collapsed", key="strategy_mode_key", disabled=disable_all)
-st.divider()
 
 # --- Session State Config ---
 default_code = "ema1 = ema 5 of 5m\nema2 = ema 30 of 5m\ncross_up = crossing above ema1 ema2\nbuy when cross_up"
