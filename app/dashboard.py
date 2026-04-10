@@ -634,6 +634,8 @@ with st.sidebar.expander("⚖️ Execution Parameters", expanded=disable_all):
     analysis_days = st.number_input("Analysis Duration (Days)", min_value=1, max_value=400, value=30, disabled=disable_all, key="analysis_days_key")
     compound_growth = st.checkbox("Compound Growth (Dynamic Lot Sizing)", value=False, key="compound_growth_key", disabled=disable_all)
     st.divider()
+    max_trades_per_day = st.number_input("Max Trades Per Day", min_value=1, max_value=50, value=3, disabled=disable_all, key="max_trades_key")
+    max_loss_trades_per_day = st.number_input("Max Loss Trades Per Day", min_value=1, max_value=50, value=2, disabled=disable_all, key="max_loss_trades_key")
     st.write("Trading Session (IST)")
     session_start = st.number_input("Start Hour", min_value=0, max_value=23, value=9, key="session_start_key", disabled=disable_all)
     session_end = st.number_input("End Hour", min_value=0, max_value=23, value=23, key="session_end_key", disabled=disable_all)
@@ -703,7 +705,7 @@ class APITrade:
         self.pnl = data["pnl"]
 
 @st.cache_data(show_spinner=False)
-def run_simulation(sl, tp, cap, lev, lot, days, compound, s_start, s_end, spread, ema_cfg, strict_paths, be_trigger, be_lock, strat_mode, custom_str, st_type, st_params):
+def run_simulation(sl, tp, cap, lev, lot, days, compound, s_start, s_end, spread, ema_cfg, strict_paths, be_trigger, be_lock, strat_mode, custom_str, st_type, st_params, max_trades_per_day, max_loss_trades_per_day):
     from datetime import datetime, timedelta
     start = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
     psize = lot * 100000 
@@ -726,7 +728,9 @@ def run_simulation(sl, tp, cap, lev, lot, days, compound, s_start, s_end, spread
         "spread_pips": spread,
         "ema_config_gui": ema_cfg,
         "active_be_trigger": be_trigger,
-        "active_be_lock": be_lock
+        "active_be_lock": be_lock,
+        "max_trades_per_day": max_trades_per_day,
+        "max_loss_trades_per_day": max_loss_trades_per_day
     }
     
     # Target backend service uniformly mapping execution endpoints 
@@ -796,7 +800,9 @@ def run_simulation(sl, tp, cap, lev, lot, days, compound, s_start, s_end, spread
                 session_end=s_end,
                 spread_pips=spread,
                 break_even_trigger=be_trigger,
-                break_even_lock=be_lock
+                break_even_lock=be_lock,
+                max_trades_per_day=max_trades_per_day,
+                max_loss_trades_per_day=max_loss_trades_per_day
             )
             
             results = tester.run()
@@ -864,7 +870,7 @@ with st.spinner("🚀 Running Engine Simulation & Validating Dependencies..."):
             state_to_save = {k: v for k, v in st.session_state.items() if k.endswith('_key') or k == 'custom_code'}
             st.query_params["app"] = base64.urlsafe_b64encode(json.dumps(state_to_save).encode()).decode()
 
-            results, df_raw = run_simulation(sl_usd, tp_usd, account_capital, leverage, lot_size, analysis_days, compound_growth, session_start, session_end, spread_pips, ema_config_gui, None, active_be_trigger, active_be_lock, strategy_mode, custom_code, strat_type, strat_params)
+            results, df_raw = run_simulation(sl_usd, tp_usd, account_capital, leverage, lot_size, analysis_days, compound_growth, session_start, session_end, spread_pips, ema_config_gui, None, active_be_trigger, active_be_lock, strategy_mode, custom_code, strat_type, strat_params, max_trades_per_day, max_loss_trades_per_day)
             
             # Formally synchronize explicit backtest evaluations permanently across passive page reruns
             st.session_state.backend_results = results

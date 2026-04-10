@@ -22,7 +22,7 @@ class Trade:
         self.pnl = (self.exit_price - self.entry_price) * self.direction * self.size
 
 class Backtester:
-    def __init__(self, data_paths, strategy_class, ema_config=None, primary_tf='5m', start_date=None, end_date=None, cash=10000, leverage=100, position_size=10000, compound=False, session_start=0, session_end=23, spread_pips=0.0, commission=0.0, break_even_trigger=0.0, break_even_lock=0.0):
+    def __init__(self, data_paths, strategy_class, ema_config=None, primary_tf='5m', start_date=None, end_date=None, cash=10000, leverage=100, position_size=10000, compound=False, session_start=0, session_end=23, spread_pips=0.0, commission=0.0, break_even_trigger=0.0, break_even_lock=0.0, max_trades_per_day=1, max_loss_trades_per_day=50):
         self.data_paths = data_paths
         self.ema_config = ema_config or {}
         self.primary_tf = primary_tf
@@ -40,6 +40,8 @@ class Backtester:
         self.commission = commission
         self.break_even_trigger = break_even_trigger
         self.break_even_lock = break_even_lock
+        self.max_trades_per_day = max_trades_per_day
+        self.max_loss_trades_per_day = max_loss_trades_per_day
         self.blown_up = False
         self.data = pd.DataFrame()
         self.trades = []
@@ -103,6 +105,7 @@ class Backtester:
         
         current_day = None
         trades_today = 0
+        loss_trades_today = 0
         won_today = False
         previous_trade_count = 0
         
@@ -114,6 +117,7 @@ class Backtester:
             if current_day != bar_date:
                 current_day = bar_date
                 trades_today = 0
+                loss_trades_today = 0
                 won_today = False
                 
             # 0. Check Account Blowup
@@ -194,9 +198,12 @@ class Backtester:
             # Evaluate daily trackers based on closed trades
             current_trade_count = len(self.trades)
             if current_trade_count > previous_trade_count:
-                last_trade = self.trades[-1]
-                if last_trade.pnl is not None and last_trade.pnl > 0:
-                    won_today = True
+                for new_trade in self.trades[previous_trade_count:]:
+                    if new_trade.pnl is not None:
+                        if new_trade.pnl > 0:
+                            won_today = True
+                        elif new_trade.pnl <= 0:
+                            loss_trades_today += 1
                 previous_trade_count = current_trade_count
 
             # 2. Get Strategy Signal (Subject to Session Filters)
@@ -216,8 +223,8 @@ class Backtester:
                 if not (current_hour >= self.session_start or current_hour <= self.session_end):
                     is_valid_session = False
                     
-            # Apply strict daily limits (1 trade per day absolute maximum)
-            if trades_today >= 1:
+            # Apply user-configurable dynamic daily limits
+            if trades_today >= self.max_trades_per_day or loss_trades_today >= self.max_loss_trades_per_day:
                 is_valid_session = False
                 
             if is_valid_session:
